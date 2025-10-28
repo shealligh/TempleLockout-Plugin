@@ -1,4 +1,0 @@
-name: TempleLockout
-version: '0.0.1'
-main: slworks.templeLockout.TempleLockout
-api-version: '1.21'

@@ -1,0 +1,9 @@
+name: TempleLockout
+version: '0.0.1'
+main: slworks.templeLockout.TempleLockout
+api-version: '1.21'
+depend: [SynlinkGames]
+commands:
+  templelockout:
+    description: Main command for TempleLockout plugin
+    permission: templelockout.admin
