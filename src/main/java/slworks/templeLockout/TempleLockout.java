@@ -4,7 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import slworks.templeLockout.arena.TempleLockoutArena;
 import slworks.templeLockout.command.TempleLockoutCommand;
-import slworks.templeLockout.game.TempleLockoutConfigManager;
+import slworks.templeLockout.config.TempleLockoutConfigManager;
 import slworks.templeLockout.game.TempleLockoutCore;
 import slworks.templeLockout.game.TempleLockoutScoreboard;
 

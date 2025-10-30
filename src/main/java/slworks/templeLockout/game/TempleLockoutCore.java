@@ -1,14 +1,20 @@
 package slworks.templeLockout.game;
 
+import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 
 import slworks.synlinkGames.API.game.GameCore;
 import slworks.synlinkGames.API.game.Phase;
 import slworks.synlinkGames.API.game.PhaseFactory;
 import slworks.synlinkGames.API.player.PlayerUtil;
+import slworks.synlinkGames.API.util.ItemUtils;
 import slworks.templeLockout.TempleLockout;
+import slworks.templeLockout.config.TempleLockoutConfigManager;
 
 public class TempleLockoutCore extends GameCore {
 
@@ -21,9 +27,9 @@ public class TempleLockoutCore extends GameCore {
         configManager.setupCustomConfig();
         gameMode = configManager.getGameMode();
 
-        initializeTimeline();
+        scoreboard = new TempleLockoutScoreboard(plugin);
 
-        scoreboard = new TempleLockoutScoreboard();
+        initializeTimeline();
     }
 
     @Override
@@ -32,20 +38,24 @@ public class TempleLockoutCore extends GameCore {
         pregamePhase.setOnStart(() -> {
             scoreboard.initialize();
             for (Player player : PlayerUtil.getIngamePlayers()) {
-                playerManager.addIngamePlayer(player);
-                playerManager.addAlivePlayer(player);
+                ingamePlayers.add(player);
+                alivePlayers.add(player);
                 // player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getBaseValue());
                 player.setHealth(20);
                 player.setFoodLevel(20);
+                player.give(ItemUtils.getTool(Material.STONE_PICKAXE));
+                player.give(ItemUtils.getTool(Material.STONE_SWORD));
+                player.give(ItemUtils.getTool(Material.BOW));
+                player.give(ItemUtils.getItem(Material.ARROW, 8));
             }
             for (Player player : PlayerUtil.getSpectators()) {
-                playerManager.addSpectator(player);
+                spectators.add(player);
             }
 
             TempleLockout.getInstance().getArena().teleportPlayersToSpawns();
             // playerManager.alivePlayers.clear();
         });
-    }   
+    }
 
     @Override
     protected void onGameEnd() {
