@@ -7,6 +7,7 @@ import org.bukkit.util.Vector;
 import slworks.synlinkGames.API.config.GameConfigManager;
 import slworks.templeLockout.TempleLockout;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +17,7 @@ public class TempleLockoutConfigManager extends GameConfigManager {
 
     public TempleLockoutConfigManager(Plugin plugin) {
         super(plugin);
+        times = new ArrayList<>();
         times.add(getShrinkTime(1));
         times.add(getNextShrinkTime(1));
         times.add(getShrinkTime(2));
@@ -101,14 +103,20 @@ public class TempleLockoutConfigManager extends GameConfigManager {
         return vec.toLocation(TempleLockout.getInstance().getArena().getWorld());
     }
 
-    public Set<Vector> getCapturePointBlocks() {
-        return (Set<Vector>) config.get("arena.capturepoints");
-    }
+//    public Set<Vector> getCapturePointBlocks() {
+//    [21:39:58 ERROR]: Error occurred while enabling TempleLockout v0.0.1 (Is it up to date?)
+//            java.lang.ClassCastException: class org.bukkit.configuration.MemorySection cannot be cast to class java.util.Set (org.bukkit.configuration.MemoryS
+//                    ection is in unnamed module of loader java.net.URLClassLoader @484b61fc; java.util.Set is in module java.base of loader 'bootstrap')
+//            at TempleLockout-0.0.1-1761917997909.jar/slworks.templeLockout.config.TempleLockoutConfigManager.getCapturePointBlocks(TempleLockoutConfig
+//                    Manager.java:107) ~[TempleLockout-0.0.1-1761917997909.jar:?]
+//        放弃用config yml存这些点的位置
+//        return (Set<Vector>) config.get("arena.capturepoints");
+//    }
 
-    public void registerCapturePointBlocks() {
-        Vector coord_1 = new Vector(-getTotalWidth()/2, 50, -getTotalWidth()/2);
-        Vector coord_2 = new Vector(getTotalWidth()/2, 150, getTotalWidth()/2);
-        config.set("arena.capturepoints", TempleLockout.getInstance().getArena().registerCapturePointBlocks(coord_1, coord_2));
-        saveConfig();
-    }
+//    public void registerCapturePointBlocks() {
+//        Vector coord_1 = new Vector(-getTotalWidth()/2, 50, -getTotalWidth()/2);
+//        Vector coord_2 = new Vector(getTotalWidth()/2, 150, getTotalWidth()/2);
+//        config.set("arena.capturepoints", TempleLockout.getInstance().getArena().registerCapturePointBlocks(coord_1, coord_2));
+//        saveConfig();
+//    }
 }

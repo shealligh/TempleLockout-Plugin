@@ -3,7 +3,7 @@ package slworks.templeLockout;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import slworks.synlinkGames.API.world.WorldUtil;
-import slworks.synlinkGames.API.world.WorldUtil.Worlds;
+import slworks.synlinkGames.worlds.WorldManager;
 import slworks.templeLockout.arena.TempleLockoutArena;
 import slworks.templeLockout.command.TempleLockoutCommand;
 import slworks.templeLockout.config.TempleLockoutConfigManager;
@@ -55,7 +55,7 @@ public final class TempleLockout extends JavaPlugin {
         configManager = new TempleLockoutConfigManager(this);
 
         game = new TempleLockoutCore(this);
-        arena = new TempleLockoutArena(WorldUtil.getWorld(Worlds.TEMPLE_LOCKOUT));
+        arena = new TempleLockoutArena(WorldUtil.getWorld(WorldManager.TEMPLE_LOCKOUT_WORLD));
     }
 
     @Override

@@ -19,8 +19,7 @@ public class TempleLockoutCommand extends GameCommand {
         // ).toArray(String[]::new);
         opSubcommands = new String[] {
             "start",
-            "stop",
-            "registerCapturePointBlocks"
+            "stop"
         };
         normalSubcommands = new String[] {};
     }
@@ -30,7 +29,6 @@ public class TempleLockoutCommand extends GameCommand {
         return switch (subcommand.toLowerCase()) {
             case "start" -> handleStart(sender);
             case "stop" -> handleStop(sender);
-            case "registercapturepointblocks" -> handleRegisterCapturePointBlocks(sender);
             default -> handleCommandNotFound(sender);
         };
     }
@@ -41,16 +39,12 @@ public class TempleLockoutCommand extends GameCommand {
     }
 
     private boolean handleStart(Player sender) {
+        TempleLockout.getInstance().getGame().startGame();
         return true;
     }
 
     private boolean handleStop(Player sender) {
+        TempleLockout.getInstance().getGame().forceEndGame();
         return true;
     }
-
-    private boolean handleRegisterCapturePointBlocks(Player sender) {
-        TempleLockout.getInstance().getConfigManager().registerCapturePointBlocks();
-        return true;
-    }
-
 }

@@ -75,7 +75,7 @@ public class TempleLockoutCore extends GameCore {
 
     @Override
     protected void initializeTimeline() {
-        Phase pregamePhase = PhaseFactory.createPregamePhase(this, 15);
+        Phase pregamePhase = PhaseFactory.createPregamePhase(this, 10000);
         pregamePhase.setOnStart(() -> {
             scoreboard.initialize();
             for (Player player : PlayerUtil.getIngamePlayers()) {
@@ -98,6 +98,8 @@ public class TempleLockoutCore extends GameCore {
             TempleLockout.getInstance().getArena().teleportPlayersToSpawns();
             // playerManager.alivePlayers.clear();
         });
+
+        addPhase(pregamePhase);
     }
 
     @Override

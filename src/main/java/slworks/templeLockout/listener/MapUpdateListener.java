@@ -12,6 +12,8 @@ import slworks.synlinkGames.API.player.PlayerUtil;
 import slworks.synlinkGames.API.util.Pair;
 import slworks.templeLockout.TempleLockout;
 
+import java.awt.*;
+
 public class MapUpdateListener implements Listener {
 
     @EventHandler
@@ -19,7 +21,7 @@ public class MapUpdateListener implements Listener {
         Block block = ev.getBlock();
         Player player = ev.getPlayer();
         if (!TempleLockout.getInstance().getArena().capturePointBlocks.contains(block.getLocation().toVector())) {
-            TempleLockout.getInstance().getArena().zoneStatus.replace(new Pair<>(block.getX(), block.getZ()), NamedTextColor.WHITE);
+            TempleLockout.getInstance().getArena().pixelStatus.replace(new Pair<>(block.getX(), block.getZ()), Color.WHITE);
             return;
         }
         ev.setCancelled(true);
@@ -30,7 +32,7 @@ public class MapUpdateListener implements Listener {
         Block block = ev.getBlock();
         Player player = ev.getPlayer();
         if (!TempleLockout.getInstance().getArena().capturePointBlocks.contains(block.getLocation().toVector())) {
-            TempleLockout.getInstance().getArena().zoneStatus.replace(new Pair<>(block.getX(), block.getZ()), PlayerUtil.getPlayerTeamColor(player));
+            TempleLockout.getInstance().getArena().pixelStatus.replace(new Pair<>(block.getX(), block.getZ()), Color.getColor(PlayerUtil.getPlayerTeamColor(player).toString()));
             return;
         }
         ev.setCancelled(true);

@@ -1,5 +1,6 @@
 package slworks.templeLockout.arena;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -10,24 +11,27 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
-import net.kyori.adventure.text.format.NamedTextColor;
 import slworks.synlinkGames.API.arena.GameArena;
 import slworks.synlinkGames.API.util.Pair;
 import slworks.templeLockout.TempleLockout;
 
 public class TempleLockoutArena extends GameArena {
 
-    public Map<Pair<Integer, Integer>, NamedTextColor> zoneStatus;
+    public Map<Pair<Integer, Integer>, Color> pixelStatus;
     public Set<Vector> capturePointBlocks;
     private int roomWidth;
     private int corridorLength;
     private int corridorWidth;
+    private int totalWidth;
 
     public TempleLockoutArena(World world) {
         super(world);
-        zoneStatus = new HashMap<>();
+        pixelStatus = new HashMap<>();
         capturePointBlocks = new HashSet<>();
-        capturePointBlocks = TempleLockout.getInstance().getConfigManager().getCapturePointBlocks();
+        totalWidth = TempleLockout.getInstance().getConfigManager().getTotalWidth();
+        Vector coord_1 = new Vector(-totalWidth/2, 50, -totalWidth/2);
+        Vector coord_2 = new Vector(totalWidth/2, 150, totalWidth/2);
+        capturePointBlocks = registerCapturePointBlocks(coord_1, coord_2);
         roomWidth = TempleLockout.getInstance().getConfigManager().getRoomWidth();
         corridorLength = TempleLockout.getInstance().getConfigManager().getCorridorLength();
         corridorWidth = TempleLockout.getInstance().getConfigManager().getCorridorWidth();
@@ -36,7 +40,7 @@ public class TempleLockoutArena extends GameArena {
             for (int j = -3; j <= 3; j++) {
                 for (int x = -roomWidth/2; x <= roomWidth/2; x++) {
                     for (int z = -roomWidth/2; z <= roomWidth/2; z++) {
-                        zoneStatus.put(new Pair<>(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength)), NamedTextColor.WHITE);
+                        updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), Color.WHITE);
                     }
                 }
 
@@ -44,7 +48,7 @@ public class TempleLockoutArena extends GameArena {
                 if (i != 3) {
                     for (int x = roomWidth/2 + 1; x <= roomWidth/2 + corridorLength; x++) {
                         for (int z = -corridorWidth/2; z <= corridorWidth/2; z++) {
-                            zoneStatus.put(new Pair<>(x + i * (roomWidth + corridorLength) + roomWidth/2 + corridorLength/2, z + j * (roomWidth + corridorLength)), NamedTextColor.WHITE);
+                            updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), Color.MAGENTA);
                         }
                     }
                 }
@@ -52,7 +56,7 @@ public class TempleLockoutArena extends GameArena {
                 if (j != 3) {
                     for (int z = roomWidth/2 + 1; z <= roomWidth/2 + corridorLength; z++) {
                         for (int x = -corridorWidth/2; x <= corridorWidth/2; x++) {
-                            zoneStatus.put(new Pair<>(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength) + roomWidth/2 + corridorLength/2), NamedTextColor.WHITE);
+                            updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), Color.MAGENTA);
                         }
                     }
                 }
@@ -60,10 +64,17 @@ public class TempleLockoutArena extends GameArena {
         }
     }
 
-    public void updateZoneStatus(int blockX, int blockZ, NamedTextColor newStatus) {
+    public void updatePixelStatus(Location loc, Color newStatus) {
         // 这里的输入是方块的坐标,需要转换为区域坐标
-        
-        zoneStatus.put(new Pair<>(blockX, blockZ), newStatus);
+        for (Pair<Integer, Integer> pair : toPixel(loc.getBlockX(), loc.getBlockY())) {
+            pixelStatus.put(pair, newStatus);
+        }
+    }
+
+    public void updatePixelStatus(int x, int y, Color newStatus) {
+        for (Pair<Integer, Integer> pair : toPixel(x, y)) {
+            pixelStatus.put(pair, newStatus);
+        }
     }
 
     public void teleportPlayersToSpawns() {
@@ -92,6 +103,16 @@ public class TempleLockoutArena extends GameArena {
             }
         }
         return tracingBlocks;
+    }
+
+    public Set<Pair<Integer, Integer>> toPixel(int x, int y) {
+        Set<Pair<Integer, Integer>> pixels = new HashSet<>();
+//        pixels.add(new Pair<>(x*2, y*2));
+//        pixels.add(new Pair<>(x*2 + 1, y*2));
+//        pixels.add(new Pair<>(x*2, y*2 + 1));
+//        pixels.add(new Pair<>(x*2 + 1, y*2 + 1));
+        pixels.add(new Pair<>(x, y));
+        return pixels;
     }
 
     @Override
