@@ -7,6 +7,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
 import slworks.synlinkGames.API.command.GameCommand;
+import slworks.templeLockout.TempleLockout;
 
 public class TempleLockoutCommand extends GameCommand {
 
@@ -18,7 +19,8 @@ public class TempleLockoutCommand extends GameCommand {
         // ).toArray(String[]::new);
         opSubcommands = new String[] {
             "start",
-            "stop"
+            "stop",
+            "registerCapturePointBlocks"
         };
         normalSubcommands = new String[] {};
     }
@@ -28,6 +30,7 @@ public class TempleLockoutCommand extends GameCommand {
         return switch (subcommand.toLowerCase()) {
             case "start" -> handleStart(sender);
             case "stop" -> handleStop(sender);
+            case "registercapturepointblocks" -> handleRegisterCapturePointBlocks(sender);
             default -> handleCommandNotFound(sender);
         };
     }
@@ -42,6 +45,11 @@ public class TempleLockoutCommand extends GameCommand {
     }
 
     private boolean handleStop(Player sender) {
+        return true;
+    }
+
+    private boolean handleRegisterCapturePointBlocks(Player sender) {
+        TempleLockout.getInstance().getConfigManager().registerCapturePointBlocks();
         return true;
     }
 

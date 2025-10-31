@@ -2,11 +2,12 @@ package slworks.templeLockout;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import slworks.synlinkGames.API.world.WorldUtil;
+import slworks.synlinkGames.API.world.WorldUtil.Worlds;
 import slworks.templeLockout.arena.TempleLockoutArena;
 import slworks.templeLockout.command.TempleLockoutCommand;
 import slworks.templeLockout.config.TempleLockoutConfigManager;
 import slworks.templeLockout.game.TempleLockoutCore;
-import slworks.templeLockout.game.TempleLockoutScoreboard;
 
 public final class TempleLockout extends JavaPlugin {
 
@@ -16,7 +17,7 @@ public final class TempleLockout extends JavaPlugin {
         return INSTANCE;
     }
 
-    // private TempleLockoutConfigManager configManager;
+    private TempleLockoutConfigManager configManager;
     private TempleLockoutCore game;
     // private TempleLockoutScoreboard scoreboard;
     private TempleLockoutArena arena;
@@ -27,7 +28,6 @@ public final class TempleLockout extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         INSTANCE = this;
-        // configManager = new TempleLockoutConfigManager(this);
 
         reload();
 
@@ -52,7 +52,10 @@ public final class TempleLockout extends JavaPlugin {
 
     public void reload() {
         unload();
+        configManager = new TempleLockoutConfigManager(this);
+
         game = new TempleLockoutCore(this);
+        arena = new TempleLockoutArena(WorldUtil.getWorld(Worlds.TEMPLE_LOCKOUT));
     }
 
     @Override
@@ -61,10 +64,9 @@ public final class TempleLockout extends JavaPlugin {
         unload();
     }
 
-
-    // public TempleLockoutConfigManager getConfigManager() {
-    //     return configManager;
-    // }
+    public TempleLockoutConfigManager getConfigManager() {
+        return configManager;
+    }
 
     public TempleLockoutCore getGame() {
         return game;
