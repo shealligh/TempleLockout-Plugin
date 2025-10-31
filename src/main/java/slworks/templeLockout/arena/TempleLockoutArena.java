@@ -47,6 +47,7 @@ public class TempleLockoutArena extends GameArena {
     }
 
     public void updateZoneColor(Vector vec, Color newColor) {
+        //TODO: 增加robust
         int roomPlusCorridor = roomWidth + corridorLength;
         int roomX = Math.round((float) vec.getBlockX() /roomPlusCorridor);
         int roomZ = Math.round((float) vec.getBlockZ() /roomPlusCorridor);
