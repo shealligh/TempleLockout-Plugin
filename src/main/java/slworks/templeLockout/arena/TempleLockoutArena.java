@@ -9,72 +9,77 @@ import java.util.Set;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
 import slworks.synlinkGames.API.arena.GameArena;
 import slworks.synlinkGames.API.util.Pair;
 import slworks.templeLockout.TempleLockout;
+import slworks.templeLockout.util.TempleLockoutMapRenderer;
 
 public class TempleLockoutArena extends GameArena {
 
-    public Map<Pair<Integer, Integer>, Color> pixelStatus;
     public Set<Vector> capturePointBlocks;
     private int roomWidth;
     private int corridorLength;
     private int corridorWidth;
     private int totalWidth;
+    private TempleLockoutMapRenderer renderer = new TempleLockoutMapRenderer();
+
+//    private Color corridorColor = new Color(188, 143, 143);
+    private final Color corridorColor = new Color(236, 121, 147);
+    private final Color innerRoomColor = new Color(57, 197, 187); // "39C5BB"
+    private final Color secondRoomColor = Color.YELLOW;
+    private final Color thirdRoomColor = new Color(255, 153, 51);
+    private final Color outerRoomColor = new Color(176, 32, 39); // "B02027"
 
     public TempleLockoutArena(World world) {
         super(world);
-        pixelStatus = new HashMap<>();
         capturePointBlocks = new HashSet<>();
         totalWidth = TempleLockout.getInstance().getConfigManager().getTotalWidth();
-        Vector coord_1 = new Vector(-totalWidth/2, 50, -totalWidth/2);
-        Vector coord_2 = new Vector(totalWidth/2, 150, totalWidth/2);
-        capturePointBlocks = registerCapturePointBlocks(coord_1, coord_2);
         roomWidth = TempleLockout.getInstance().getConfigManager().getRoomWidth();
         corridorLength = TempleLockout.getInstance().getConfigManager().getCorridorLength();
         corridorWidth = TempleLockout.getInstance().getConfigManager().getCorridorWidth();
+    }
 
-        for (int i = -3; i <= 3; i++) {
-            for (int j = -3; j <= 3; j++) {
-                for (int x = -roomWidth/2; x <= roomWidth/2; x++) {
-                    for (int z = -roomWidth/2; z <= roomWidth/2; z++) {
-                        updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), Color.WHITE);
-                    }
-                }
+    public void updatePixelStatus(int x, int y, Color newStatus) {
+        renderer.getPixelStatus().put(Pair.of(x, y), newStatus);
+    }
 
-                // 上方和右方的走廊
-                if (i != 3) {
-                    for (int x = roomWidth/2 + 1; x <= roomWidth/2 + corridorLength; x++) {
-                        for (int z = -corridorWidth/2; z <= corridorWidth/2; z++) {
-                            updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), Color.MAGENTA);
-                        }
-                    }
-                }
-
-                if (j != 3) {
-                    for (int z = roomWidth/2 + 1; z <= roomWidth/2 + corridorLength; z++) {
-                        for (int x = -corridorWidth/2; x <= corridorWidth/2; x++) {
-                            updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), Color.MAGENTA);
-                        }
-                    }
-                }
+    public void updateZoneColor(Vector vec, Color newColor) {
+        int roomPlusCorridor = roomWidth + corridorLength;
+        int roomX = Math.round((float) vec.getBlockX() /roomPlusCorridor);
+        int roomZ = Math.round((float) vec.getBlockZ() /roomPlusCorridor);
+        int centerX = roomX * roomPlusCorridor;
+        int centerZ = roomZ * roomPlusCorridor;
+        int dirX = vec.getBlockX() - centerX;
+        int dirZ = vec.getBlockZ() - centerZ;
+        int minX, maxX, minZ, maxZ;
+        int roomWidth6 = Math.round((float) roomWidth /6);
+        int roomWidth2 = roomWidth /2;
+        if (dirZ ==0) {
+            minZ = -roomWidth6;
+            maxZ = roomWidth6;
+        } else {
+            minZ = dirZ > 0 ? roomWidth6 : -roomWidth2;
+            maxZ = dirZ > 0 ? roomWidth2 : -roomWidth6;
+        }
+        if (dirX ==0) {
+            minX = -roomWidth6;
+            maxX = roomWidth6;
+        } else {
+            minX = dirX > 0 ? roomWidth6 : -roomWidth2;
+            maxX = dirX > 0 ? roomWidth2 : -roomWidth6;
+        }
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                updatePixelStatus(x + centerX, z + centerZ, newColor);
             }
         }
     }
 
-    public void updatePixelStatus(Location loc, Color newStatus) {
-        // 这里的输入是方块的坐标,需要转换为区域坐标
-        for (Pair<Integer, Integer> pair : toPixel(loc.getBlockX(), loc.getBlockY())) {
-            pixelStatus.put(pair, newStatus);
-        }
-    }
-
-    public void updatePixelStatus(int x, int y, Color newStatus) {
-        for (Pair<Integer, Integer> pair : toPixel(x, y)) {
-            pixelStatus.put(pair, newStatus);
-        }
+    public TempleLockoutMapRenderer getRenderer() {
+        return renderer;
     }
 
     public void teleportPlayersToSpawns() {
@@ -95,9 +100,10 @@ public class TempleLockoutArena extends GameArena {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     Vector vec = new Vector(x, y, z);
-                    Material loc = world.getBlockAt(vec.getBlockX(), vec.getBlockY(), vec.getBlockZ()).getType();
-                    if (loc.equals(Material.BEDROCK)) {
+                    Block block = world.getBlockAt(vec.getBlockX(), vec.getBlockY(), vec.getBlockZ());
+                    if (block.getType().equals(Material.BEDROCK)) {
                         tracingBlocks.add(vec);
+                        block.setType(Material.CALCITE);
                     }
                 }
             }
@@ -105,24 +111,72 @@ public class TempleLockoutArena extends GameArena {
         return tracingBlocks;
     }
 
-    public Set<Pair<Integer, Integer>> toPixel(int x, int y) {
-        Set<Pair<Integer, Integer>> pixels = new HashSet<>();
-//        pixels.add(new Pair<>(x*2, y*2));
-//        pixels.add(new Pair<>(x*2 + 1, y*2));
-//        pixels.add(new Pair<>(x*2, y*2 + 1));
-//        pixels.add(new Pair<>(x*2 + 1, y*2 + 1));
-        pixels.add(new Pair<>(x, y));
-        return pixels;
-    }
-
     @Override
     public void initialize() {
         world.setPVP(true);
+        Vector coord_1 = new Vector(-totalWidth/2, 50, -totalWidth/2);
+        Vector coord_2 = new Vector(totalWidth/2, 150, totalWidth/2);
+        capturePointBlocks = registerCapturePointBlocks(coord_1, coord_2);
+
+        for (int i = -3; i <= 3; i++) {
+            for (int j = -3; j <= 3; j++) {
+                for (int x = -roomWidth/2; x <= roomWidth/2; x++) {
+                    for (int z = -roomWidth/2; z <= roomWidth/2; z++) {
+                        updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), Color.WHITE);
+                    }
+                }
+
+                // 上方和右方的走廊
+                if (i != 3) {
+                    for (int x = roomWidth/2 + 1; x <= roomWidth/2 + corridorLength; x++) {
+                        for (int z = -corridorWidth/2; z <= corridorWidth/2; z++) {
+                            updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), corridorColor);
+                        }
+                    }
+                }
+
+                if (j != 3) {
+                    for (int z = roomWidth/2 + 1; z <= roomWidth/2 + corridorLength; z++) {
+                        for (int x = -corridorWidth/2; x <= corridorWidth/2; x++) {
+                            updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), corridorColor);
+                        }
+                    }
+                }
+
+                // 房间周围的颜色圈
+                Color roomColor;
+                if (i == 0 && j == 0) {
+                    roomColor = innerRoomColor;
+                } else if ((Math.abs(i) == 1 && Math.abs(j) <= 1) || (Math.abs(j) == 1 && Math.abs(i) <= 1)) {
+                    roomColor = secondRoomColor;
+                } else if ((Math.abs(i) == 2 && Math.abs(j) <= 2) || (Math.abs(j) == 2 && Math.abs(i) <= 2)) {
+                    roomColor = thirdRoomColor;
+                } else {
+                    roomColor = outerRoomColor;
+                }
+
+                for (int x = -roomWidth/2 - 2; x <= roomWidth/2 + 2; x++) {
+                    updatePixelStatus(x + i * (roomWidth + corridorLength), roomWidth/2 + 1 + j * (roomWidth + corridorLength), roomColor);
+                    updatePixelStatus(x + i * (roomWidth + corridorLength), roomWidth/2 + 2 + j * (roomWidth + corridorLength), roomColor);
+                    updatePixelStatus(x + i * (roomWidth + corridorLength), -roomWidth/2 - 1 + j * (roomWidth + corridorLength), roomColor);
+                    updatePixelStatus(x + i * (roomWidth + corridorLength), -roomWidth/2 - 2 + j * (roomWidth + corridorLength), roomColor);
+                }
+
+                for (int z = -roomWidth/2; z <= roomWidth/2; z++) {
+                    updatePixelStatus(roomWidth/2 + 1 + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), roomColor);
+                    updatePixelStatus(roomWidth/2 + 2 + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), roomColor);
+                    updatePixelStatus(-roomWidth/2 - 1 + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), roomColor);
+                    updatePixelStatus(-roomWidth/2 - 2 + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), roomColor);
+                }
+            }
+        }
     }
 
     @Override
     public void reset() {
         world.setPVP(false);
+        for (Vector vec : capturePointBlocks) {
+            world.getBlockAt(new Location(world, vec.getBlockX(), vec.getBlockY(), vec.getBlockZ())).setType(Material.BEDROCK);
+        }
     }
-
 }

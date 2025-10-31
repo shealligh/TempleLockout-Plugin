@@ -21,10 +21,10 @@ public class MapUpdateListener implements Listener {
         Block block = ev.getBlock();
         Player player = ev.getPlayer();
         if (!TempleLockout.getInstance().getArena().capturePointBlocks.contains(block.getLocation().toVector())) {
-            TempleLockout.getInstance().getArena().pixelStatus.replace(new Pair<>(block.getX(), block.getZ()), Color.WHITE);
+            ev.setCancelled(true);
             return;
         }
-        ev.setCancelled(true);
+        TempleLockout.getInstance().getArena().updateZoneColor(block.getLocation().toVector(), Color.WHITE);
     }
 
     @EventHandler
@@ -32,10 +32,10 @@ public class MapUpdateListener implements Listener {
         Block block = ev.getBlock();
         Player player = ev.getPlayer();
         if (!TempleLockout.getInstance().getArena().capturePointBlocks.contains(block.getLocation().toVector())) {
-            TempleLockout.getInstance().getArena().pixelStatus.replace(new Pair<>(block.getX(), block.getZ()), Color.getColor(PlayerUtil.getPlayerTeamColor(player).toString()));
+            ev.setCancelled(true);
             return;
         }
-        ev.setCancelled(true);
+        TempleLockout.getInstance().getArena().updateZoneColor(block.getLocation().toVector(), new Color(PlayerUtil.getPlayerTeamColor(player).red(), PlayerUtil.getPlayerTeamColor(player).green(), PlayerUtil.getPlayerTeamColor(player).blue()));
     }
 
 }

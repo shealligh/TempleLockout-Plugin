@@ -19,7 +19,7 @@ public class TempleLockoutCommand extends GameCommand {
         // ).toArray(String[]::new);
         opSubcommands = new String[] {
             "start",
-            "stop"
+            "end"
         };
         normalSubcommands = new String[] {};
     }
@@ -28,7 +28,7 @@ public class TempleLockoutCommand extends GameCommand {
     protected boolean executeCommand(String subcommand, Player sender) {
         return switch (subcommand.toLowerCase()) {
             case "start" -> handleStart(sender);
-            case "stop" -> handleStop(sender);
+            case "end" -> handleEnd(sender);
             default -> handleCommandNotFound(sender);
         };
     }
@@ -43,7 +43,7 @@ public class TempleLockoutCommand extends GameCommand {
         return true;
     }
 
-    private boolean handleStop(Player sender) {
+    private boolean handleEnd(Player sender) {
         TempleLockout.getInstance().getGame().forceEndGame();
         return true;
     }
