@@ -1,5 +1,7 @@
 package slworks.templeLockout.game;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -23,17 +25,6 @@ import slworks.templeLockout.util.TempleLockoutMapRenderer;
 public class TempleLockoutCore extends GameCore {
 
     private TempleLockoutScoreboard scoreboard;
-    MapView view = Bukkit.createMap(WorldManager.getWorld(WorldManager.TEMPLE_LOCKOUT_WORLD));
-    {
-        view.setScale(Scale.CLOSEST);
-        view.setLocked(true);
-        view.setTrackingPosition(false); 
-        view.setUnlimitedTracking(false);
-        view.setCenterX(0);
-        view.setCenterZ(0);
-
-        view.getRenderers().forEach(view::removeRenderer);
-    }
 
     public TempleLockoutCore(Plugin plugin) {
         super(plugin);
@@ -52,17 +43,13 @@ public class TempleLockoutCore extends GameCore {
         //     team.setOption(Option.NAME_TAG_VISIBILITY, OptionStatus.FOR_OWN_TEAM);
         // }
         TempleLockout.getInstance().getArena().initialize();
-        view.addRenderer(TempleLockout.getInstance().getArena().getRenderer());
         super.startGame();
     }
 
     @Override
     protected void initializeTimeline() {
-        Phase pregamePhase = PhaseFactory.createPregamePhase(this, 10000);
+        Phase pregamePhase = PhaseFactory.createPregamePhase(this, 12);
         pregamePhase.setOnStart(() -> {
-//            MapUpdateListener listener = new MapUpdateListener();
-//            Bukkit.getPluginManager().registerEvents(listener, plugin);
-            scoreboard.initialize();
             for (Player player : PlayerUtil.getIngamePlayers()) {
                 ingamePlayers.add(player);
                 alivePlayers.add(player);
@@ -73,36 +60,46 @@ public class TempleLockoutCore extends GameCore {
                 player.give(ItemUtils.getTool(Material.STONE_SWORD));
                 player.give(ItemUtils.getTool(Material.BOW));
                 player.give(ItemUtils.getItem(Material.ARROW, 8));
-                player.give(getMap(player));
-                
+                player.give(getMapItem());
             }
             for (Player player : PlayerUtil.getSpectators()) {
                 spectators.add(player);
             }
 
             TempleLockout.getInstance().getArena().teleportPlayersToSpawns();
-            // playerManager.alivePlayers.clear();
         });
 
+        Phase ingamePhase = PhaseFactory.createIngamePhase(this, TempleLockout.getInstance().getConfigManager().getTotalTime());
+        ingamePhase.addEventListener(new MapUpdateListener());
+        ingamePhase.addOnRun(phaseTask -> ingameRunning(phaseTask.getRemainingSeconds()));
+        // TODO: 最终决战阶段是无限长的阶段，，，可能得大改api，，，
+
         addPhase(pregamePhase);
+        addPhase(ingamePhase);
+    }
+
+    public void ingameRunning(int remainingSeconds) {
+        // TODO: 优化锕
+        int j = 0;
+        for (int i = 0; i < TempleLockout.getInstance().getConfigManager().getLayers() * 2; i++) {
+            if (TempleLockout.getInstance().getConfigManager().getRemainingTime(i) < remainingSeconds) {
+                j = i-1;
+                break;
+            }
+        }
+        Component subTimePrefix = Component.text("下次缩圈: ", NamedTextColor.RED);
+        if (j % 2 == 1) {
+            subTimePrefix = Component.text("正在缩圈: ", NamedTextColor.RED);
+        }
+        scoreboard.updateSubTime(subTimePrefix,  remainingSeconds - TempleLockout.getInstance().getConfigManager().getRemainingTime(j + 1));
+    }
+
+    private ItemStack getMapItem() {
+        return TempleLockout.getInstance().getArena().getMapItem();
     }
 
     @Override
     protected void onGameEnd() {
+        TempleLockout.getInstance().getArena().reset();
     }
-
-    public ItemStack getMap(Player player) {
-        ItemStack map = new ItemStack(Material.FILLED_MAP);
-        MapMeta mapMeta = (MapMeta) map.getItemMeta();
-        // view.setScale(Scale.CLOSEST);
-        // view.setLocked(true);
-        // view.view.setTrackingPosition(false); 
-        // view.setUnlimitedTracking(false);
-        mapMeta.setMapView(view);
-        mapMeta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
-        map.setItemMeta(mapMeta);
-
-        return map;
-    }
-
 }

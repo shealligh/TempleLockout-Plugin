@@ -15,11 +15,17 @@ public class TempleLockoutConfigManager extends GameConfigManager {
 
     private List<Integer> shrinkingTimes;
     private List<Integer> nextShrinkTimes;
+    private List<Integer> times;
 
     public TempleLockoutConfigManager(Plugin plugin) {
         super(plugin);
         setShrinkingTimes();
         setNextShrinkTimes();
+        times = new ArrayList<>();
+        for (int i = 0; i < shrinkingTimes.size(); i++) {
+            times.add(nextShrinkTimes.get(i));
+            times.add(shrinkingTimes.get(i));
+        }
     }
 
     @Override
@@ -52,6 +58,17 @@ public class TempleLockoutConfigManager extends GameConfigManager {
         }
         for (int t : nextShrinkTimes) {
             total += t;
+        }
+        return total;
+    }
+
+    public int getRemainingTime(int stage) {
+        // stage = 0 第一次下次缩圈
+        // stage = 1 第一次正在缩圈
+        // ...
+        int total = 0;
+        for (int i = stage; i < times.size(); i++) {
+            total += times.get(i);
         }
         return total;
     }

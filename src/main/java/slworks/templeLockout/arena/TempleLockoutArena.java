@@ -1,19 +1,24 @@
 package slworks.templeLockout.arena;
 
+
 import java.awt.*;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapView;
 import org.bukkit.util.Vector;
 
 import slworks.synlinkGames.API.arena.GameArena;
 import slworks.synlinkGames.API.util.Pair;
+import slworks.synlinkGames.worlds.WorldManager;
 import slworks.templeLockout.TempleLockout;
 import slworks.templeLockout.util.TempleLockoutMapRenderer;
 
@@ -24,10 +29,13 @@ public class TempleLockoutArena extends GameArena {
     private int corridorLength;
     private int corridorWidth;
     private int totalWidth;
-    private TempleLockoutMapRenderer renderer = new TempleLockoutMapRenderer();
+    private int layer;
+    private TempleLockoutMapRenderer renderer;
+    private ItemStack map;
 
 //    private Color corridorColor = new Color(188, 143, 143);
-    private final Color corridorColor = new Color(236, 121, 147);
+//    private final Color corridorColor = new Color(236, 121, 147);
+    private final Color corridorColor = new Color(102, 51, 0);
     private final Color innerRoomColor = new Color(57, 197, 187); // "39C5BB"
     private final Color secondRoomColor = Color.YELLOW;
     private final Color thirdRoomColor = new Color(255, 153, 51);
@@ -40,9 +48,10 @@ public class TempleLockoutArena extends GameArena {
         roomWidth = TempleLockout.getInstance().getConfigManager().getRoomWidth();
         corridorLength = TempleLockout.getInstance().getConfigManager().getCorridorLength();
         corridorWidth = TempleLockout.getInstance().getConfigManager().getCorridorWidth();
+        layer = TempleLockout.getInstance().getConfigManager().getLayers();
     }
 
-    public void updatePixelStatus(int x, int y, Color newStatus) {
+    private void updatePixelStatus(int x, int y, Color newStatus) {
         renderer.getPixelStatus().put(Pair.of(x, y), newStatus);
     }
 
@@ -79,16 +88,15 @@ public class TempleLockoutArena extends GameArena {
         }
     }
 
-    public TempleLockoutMapRenderer getRenderer() {
-        return renderer;
+    public ItemStack getMapItem() {
+        return map;
     }
 
     public void teleportPlayersToSpawns() {
 
     }
 
-    // 只能通过命令调用!
-    public Set<Vector> registerCapturePointBlocks(Vector coord_1, Vector coord_2) {
+    private Set<Vector> initCapturePointBlocks(Vector coord_1, Vector coord_2) {
         Set<Vector> tracingBlocks = new HashSet<>();
         int minX = Math.min(coord_1.getBlockX(), coord_2.getBlockX());
         int maxX = Math.max(coord_1.getBlockX(), coord_2.getBlockX());
@@ -114,13 +122,13 @@ public class TempleLockoutArena extends GameArena {
 
     @Override
     public void initialize() {
-        world.setPVP(true);
-        Vector coord_1 = new Vector(-totalWidth/2, 50, -totalWidth/2);
-        Vector coord_2 = new Vector(totalWidth/2, 150, totalWidth/2);
-        capturePointBlocks = registerCapturePointBlocks(coord_1, coord_2);
+        renderer = new TempleLockoutMapRenderer();
 
-        for (int i = -3; i <= 3; i++) {
-            for (int j = -3; j <= 3; j++) {
+        world.setPVP(true);
+        capturePointBlocks = initCapturePointBlocks(new Vector(-totalWidth/2, 50, -totalWidth/2), new Vector(totalWidth/2, 150, totalWidth/2));
+
+        for (int i = -layer+1; i <= layer-1; i++) {
+            for (int j = -layer+1; j <= layer-1; j++) {
                 for (int x = -roomWidth/2; x <= roomWidth/2; x++) {
                     for (int z = -roomWidth/2; z <= roomWidth/2; z++) {
                         updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), Color.WHITE);
@@ -128,7 +136,7 @@ public class TempleLockoutArena extends GameArena {
                 }
 
                 // 上方和右方的走廊
-                if (i != 3) {
+                if (i != layer-1) {
                     for (int x = roomWidth/2 + 1; x <= roomWidth/2 + corridorLength; x++) {
                         for (int z = -corridorWidth/2; z <= corridorWidth/2; z++) {
                             updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), corridorColor);
@@ -136,7 +144,7 @@ public class TempleLockoutArena extends GameArena {
                     }
                 }
 
-                if (j != 3) {
+                if (j != layer-1) {
                     for (int z = roomWidth/2 + 1; z <= roomWidth/2 + corridorLength; z++) {
                         for (int x = -corridorWidth/2; x <= corridorWidth/2; x++) {
                             updatePixelStatus(x + i * (roomWidth + corridorLength), z + j * (roomWidth + corridorLength), corridorColor);
@@ -171,6 +179,28 @@ public class TempleLockoutArena extends GameArena {
                 }
             }
         }
+
+        map = new ItemStack(Material.FILLED_MAP);
+        MapView view = Bukkit.createMap(WorldManager.getWorld(WorldManager.TEMPLE_LOCKOUT_WORLD));
+        view.setScale(MapView.Scale.CLOSEST);
+        view.setLocked(true);
+        view.setTrackingPosition(false);
+        view.setUnlimitedTracking(false);
+        view.setCenterX(0);
+        view.setCenterZ(0);
+
+        view.getRenderers().forEach(view::removeRenderer);
+
+        view.addRenderer(renderer);
+
+        MapMeta mapMeta = (MapMeta) map.getItemMeta();
+        // view.setScale(Scale.CLOSEST);
+        // view.setLocked(true);
+        // view.view.setTrackingPosition(false);
+        // view.setUnlimitedTracking(false);
+        mapMeta.setMapView(view);
+        mapMeta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+        map.setItemMeta(mapMeta);
     }
 
     @Override

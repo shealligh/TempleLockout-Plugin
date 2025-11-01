@@ -19,7 +19,6 @@ public final class TempleLockout extends JavaPlugin {
 
     private TempleLockoutConfigManager configManager;
     private TempleLockoutCore game;
-    // private TempleLockoutScoreboard scoreboard;
     private TempleLockoutArena arena;
     private TempleLockoutCommand command;
 
@@ -39,23 +38,18 @@ public final class TempleLockout extends JavaPlugin {
     public void unload() {
         if (game != null) {
             game.forceEndGame();
-            // game.reset();
-            // game.cleanup();
         }
         if (arena != null) {
             arena.reset();
         }
-        // if (scoreboard != null) {
-        //     scoreboard.reset();
-        // }
     }
 
     public void reload() {
         unload();
         configManager = new TempleLockoutConfigManager(this);
 
-        game = new TempleLockoutCore(this);
         arena = new TempleLockoutArena(WorldUtil.getWorld(WorldManager.TEMPLE_LOCKOUT_WORLD));
+        game = new TempleLockoutCore(this);
     }
 
     @Override
@@ -71,10 +65,6 @@ public final class TempleLockout extends JavaPlugin {
     public TempleLockoutCore getGame() {
         return game;
     }
-
-    // public TempleLockoutScoreboard getScoreboard() {
-    //     return scoreboard;
-    // }
 
     public TempleLockoutArena getArena() {
         return arena;

@@ -18,8 +18,9 @@ public class TempleLockoutCommand extends GameCommand {
         //     "stop"
         // ).toArray(String[]::new);
         opSubcommands = new String[] {
-            "start",
-            "end"
+                "start",
+                "end",
+                "reload"
         };
         normalSubcommands = new String[] {};
     }
@@ -29,6 +30,7 @@ public class TempleLockoutCommand extends GameCommand {
         return switch (subcommand.toLowerCase()) {
             case "start" -> handleStart(sender);
             case "end" -> handleEnd(sender);
+            case "reload" -> handleReload(sender);
             default -> handleCommandNotFound(sender);
         };
     }
@@ -45,6 +47,11 @@ public class TempleLockoutCommand extends GameCommand {
 
     private boolean handleEnd(Player sender) {
         TempleLockout.getInstance().getGame().forceEndGame();
+        return true;
+    }
+
+    private boolean handleReload(Player sender) {
+        TempleLockout.getInstance().reload();
         return true;
     }
 }

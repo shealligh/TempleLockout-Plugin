@@ -9,6 +9,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 
 import net.kyori.adventure.text.format.NamedTextColor;
 import slworks.synlinkGames.API.player.PlayerUtil;
+import slworks.synlinkGames.API.util.ColorUtils;
 import slworks.synlinkGames.API.util.Pair;
 import slworks.templeLockout.TempleLockout;
 
@@ -35,7 +36,7 @@ public class MapUpdateListener implements Listener {
             ev.setCancelled(true);
             return;
         }
-        TempleLockout.getInstance().getArena().updateZoneColor(block.getLocation().toVector(), new Color(PlayerUtil.getPlayerTeamColor(player).red(), PlayerUtil.getPlayerTeamColor(player).green(), PlayerUtil.getPlayerTeamColor(player).blue()));
+        TempleLockout.getInstance().getArena().updateZoneColor(block.getLocation().toVector(), ColorUtils.getJwtColor(PlayerUtil.getPlayerTeamColor(player)));
     }
 
 }
